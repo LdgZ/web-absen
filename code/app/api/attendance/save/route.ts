@@ -38,8 +38,13 @@ export async function POST(request: NextRequest) {
         for (const student of (Array.isArray(students) ? students : [])) {
           const phone = student.phone_parent;
           if (phone) {
-            const uppercaseName = (student.name || '').toUpperCase();
-            const message = `Pemberitahuan: ${uppercaseName} tidak masuk (ALPHA) pada ${today}. Hubungi sekolah untuk informasi lebih lanjut.`;
+            const name = student.name || '';
+            const titleCaseName = name
+              .toLowerCase()
+              .split(' ')
+              .map((s: string) => s.charAt(0).toUpperCase() + s.substring(1))
+              .join(' ');
+            const message = `Halo Bapak/Ibu, menginfokan ananda ${titleCaseName} hari ini tidak masuk sekolah (Alpha). Mohon informasinya ya, terima kasih.`;
             try {
               const result = await sendSMS(phone, message);
               if (result.success) smsSent++;

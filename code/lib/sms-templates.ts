@@ -1,28 +1,28 @@
 export const SMSTemplates = {
   alpha: (studentName: string, date: string, schoolName: string = 'Sekolah') => `
-Yth. Orang Tua/Wali,
+Halo Bapak/Ibu wali murid,
 
-Anak Anda ${(studentName || '').toUpperCase()} tidak hadir di sekolah pada tanggal ${date}.
-Mohon konfirmasi alasan ketidakhadiran.
+Hari ini ${studentName} tidak masuk sekolah tanpa keterangan (Alpha) pada tanggal ${date}.
+Jika ada informasi lebih lanjut, mohon hubungi pihak sekolah ya.
 
 Terima kasih,
 ${schoolName}
   `.trim(),
 
   warning: (studentName: string, count: number, schoolName: string = 'Sekolah') => `
-Yth. Orang Tua/Wali,
+Halo Bapak/Ibu wali murid,
 
-Kami ingin memberitahukan bahwa ${(studentName || '').toUpperCase()} sudah alpha ${count}x bulan ini.
-Mohon perhatian khusus untuk meningkatkan kehadiran.
+Kami ingin menginfokan bahwa ${studentName} sudah tidak hadir (Alpha) sebanyak ${count} kali bulan ini.
+Mohon bantuannya untuk lebih memperhatikan kehadiran ananda di sekolah ya.
 
 Terima kasih,
 ${schoolName}
   `.trim(),
 
   present: (studentName: string, schoolName: string = 'Sekolah') => `
-Yth. Orang Tua/Wali,
+Halo Bapak/Ibu wali murid,
 
-Anak Anda ${(studentName || '').toUpperCase()} telah hadir hari ini di sekolah.
+Sekadar menginfokan, hari ini ${studentName} sudah hadir di sekolah dengan selamat. Selamat belajar untuk ananda!
 
 Terima kasih,
 ${schoolName}

@@ -48,7 +48,7 @@ export default function AttendancePage() {
       }));
       setClasses(mapped);
     } catch (error) {
-      toast.error('Gagal mengambil data kelas');
+      toast.error('Waduh, data kelasnya gak muncul nih. Coba cek koneksi ya.');
     }
   };
 
@@ -77,7 +77,7 @@ export default function AttendancePage() {
 
       setAttendance(attendanceMap);
     } catch (error) {
-      toast.error('Gagal mengambil data siswa');
+      toast.error('Aduh, data siswanya gagal diambil. Coba lagi ya!');
     } finally {
       setLoading(false);
     }
@@ -91,7 +91,7 @@ export default function AttendancePage() {
 
   const handleSave = async () => {
     if (!selectedClass) {
-      toast.error('Pilih kelas terlebih dahulu');
+      toast.error('Pilih kelas dulu ya kak.');
       return;
     }
 
@@ -111,11 +111,11 @@ export default function AttendancePage() {
       if (!response.ok) throw new Error('Gagal menyimpan');
 
       const result = await response.json();
-      const smsMsg = result.smsSent > 0 ? ` (${result.smsSent} SMS terkirim)` : '';
-      toast.success(`Presensi tersimpan!${smsMsg}`);
+      const smsMsg = result.smsSent > 0 ? ` (${result.smsSent} SMS sudah meluncur! 🚀)` : '';
+      toast.success(`Sip, absensi sudah dicatat! ✅${smsMsg}`);
       fetchStudents();
     } catch (error) {
-      toast.error('Gagal menyimpan presensi');
+      toast.error('Yah, gagal nyimpen presensi. Coba cek lagi ya.');
     } finally {
       setSaving(false);
     }
@@ -127,7 +127,7 @@ export default function AttendancePage() {
       newAttendance.set(student.id, { studentId: student.id, status });
     });
     setAttendance(newAttendance);
-    toast.success(`Semua siswa ditandai ${status}`);
+    toast.success(`Oke, semua siswa ditandai ${status} ya!`);
   };
 
   const getStatusColor = (status?: string) => {

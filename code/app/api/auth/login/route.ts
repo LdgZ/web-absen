@@ -16,16 +16,32 @@ export async function POST(request: NextRequest) {
         success: true,
         teacher: teacher
       });
+      
+      const sessionAge = 604800; // 7 days in seconds
+      
       // Set both teacher_id and auth_token cookie so middleware recognizes login
-      response.cookies.set('teacher_id', String(teacher.id), { maxAge: 86400, path: '/' });
+      response.cookies.set('teacher_id', String(teacher.id), { 
+        maxAge: sessionAge, 
+        path: '/' 
+      });
       // auth_token used by middleware — for now store simple token (teacher id)
-      response.cookies.set('auth_token', String(teacher.id), { httpOnly: true, sameSite: 'lax', maxAge: 86400, path: '/' });
+      response.cookies.set('auth_token', String(teacher.id), { 
+        httpOnly: true, 
+        sameSite: 'lax', 
+        maxAge: sessionAge, 
+        path: '/' 
+      });
       return response;
     }
 
+    console.warn(`Login attempt failed: Invalid credentials for ${email}`);
     return NextResponse.json({ error: 'Email atau password salah' }, { status: 401 });
-  } catch (error) {
-    console.error('Login error:', error);
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+  } catch (error: any) {
+    console.error('CRITICAL LOGIN ERROR:', {
+      message: error.message,
+      code: error.code,
+      stack: error.stack
+    });
+    return NextResponse.json({ error: 'Terjadi kesalahan pada server. Pastikan database MySQL sudah aktif di XAMPP.' }, { status: 500 });
   }
 }

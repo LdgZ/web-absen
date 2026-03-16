@@ -1,16 +1,31 @@
 import mysql from 'mysql2/promise';
 
-const pool = mysql.createPool({
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'sekolah_absensi',
-  port: parseInt(process.env.DB_PORT || '3306'),
-  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-});
+const poolConfig = process.env.DATABASE_URL 
+  ? {
+      uri: process.env.DATABASE_URL,
+      ssl: { rejectUnauthorized: false }, // Required for Aiven
+      waitForConnections: true,
+      connectionLimit: 10,
+      queueLimit: 0,
+      enableKeepAlive: true,
+      keepAliveInitialDelay: 10000,
+    }
+  : {
+      host: process.env.DB_HOST || 'localhost',
+      user: process.env.DB_USER || 'root',
+      password: process.env.DB_PASSWORD || '',
+      database: process.env.DB_NAME || 'sekolah_absensi',
+      port: parseInt(process.env.DB_PORT || '3306'),
+      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
+      waitForConnections: true,
+      connectionLimit: 10,
+      queueLimit: 0,
+      enableKeepAlive: true,
+      keepAliveInitialDelay: 10000,
+    };
+
+// Use type assertion to handle subtle pool config differences
+const pool = mysql.createPool(poolConfig as any);
 
 export async function query(sql: string, values?: any[]) {
   const connection = await pool.getConnection();

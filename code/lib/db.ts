@@ -8,13 +8,17 @@ if (process.env.DATABASE_URL) {
   // mysql2.createPool can take a string, but to ensure SSL is set correctly:
   pool = mysql.createPool({
     uri: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false }, // Force SSL for Aiven
+    ssl: { rejectUnauthorized: false },
     waitForConnections: true,
-    connectionLimit: 5, // Lower limit for serverless environment
+    connectionLimit: 10, // Increased limit
+    maxIdle: 10, // Keep some connections idle
+    idleTimeout: 60000, // Idle connections timeout after 1 minute
     queueLimit: 0,
     enableKeepAlive: true,
     keepAliveInitialDelay: 10000,
-  } as any);
+  });
+  
+  // The promise-based pool handles errors through the query calls themselves.
 } else {
   // Local (XAMPP)
   pool = mysql.createPool({
@@ -33,12 +37,21 @@ if (process.env.DATABASE_URL) {
 }
 
 export async function query(sql: string, values?: any[]) {
-  const connection = await pool.getConnection();
   try {
-    const [results] = await connection.execute(sql, values);
-    return results;
-  } finally {
-    connection.release();
+    const connection = await pool.getConnection();
+    try {
+      const [results] = await connection.execute(sql, values);
+      return results;
+    } finally {
+      connection.release();
+    }
+  } catch (error: any) {
+    console.error('Database Query Error:', {
+      message: error.message,
+      code: error.code,
+      sql: sql.substring(0, 100),
+    });
+    throw error;
   }
 }
 

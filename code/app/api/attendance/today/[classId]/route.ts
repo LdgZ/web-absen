@@ -4,7 +4,7 @@ import { db } from '@/lib/db';
 export async function GET(request: NextRequest, { params }: { params: Promise<{ classId: string }> }) {
   try {
     const { classId } = await params;
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
     
     const students = await db.getStudentsByClass(classId);
     const attendance = await db.getAttendanceByDate(today, classId);

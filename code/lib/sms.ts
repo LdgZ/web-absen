@@ -73,7 +73,7 @@ export async function sendSMS(phone: string, message: string): Promise<SendResul
         data = { error: String(parseErr) };
       }
 
-      const isSuccess = res.ok || (data.status === 'ok');
+      const isSuccess = res.ok || data.status === true || data.status === 'true' || data.status === 'ok';
 
       // Attempt to log into DB (best effort)
       try {

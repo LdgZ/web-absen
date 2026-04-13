@@ -3,7 +3,8 @@ import { query } from '@/lib/db';
 
 export async function GET() {
   try {
-    const today = new Date().toISOString().split('T')[0];
+    // Use Jakarta timezone for today's date
+    const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
 
     // Get total students
     const totalResult: any = await query('SELECT COUNT(*) as count FROM students');

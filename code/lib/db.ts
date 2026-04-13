@@ -4,32 +4,38 @@ import mysql from 'mysql2/promise';
 let pool: mysql.Pool;
 
 if (process.env.DATABASE_URL) {
-  // Production (Aiven/Vercel)
-  // mysql2.createPool can take a string, but to ensure SSL is set correctly:
+  console.log('Database: Connecting via DATABASE_URL');
   pool = mysql.createPool({
     uri: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false },
     waitForConnections: true,
-    connectionLimit: 10, // Increased limit
-    maxIdle: 10, // Keep some connections idle
-    idleTimeout: 60000, // Idle connections timeout after 1 minute
+    connectionLimit: 10,
+    maxIdle: 10,
+    idleTimeout: 60000,
     queueLimit: 0,
     enableKeepAlive: true,
     keepAliveInitialDelay: 10000,
   });
-  
-  // The promise-based pool handles errors through the query calls themselves.
 } else {
-  // Local (XAMPP)
+  console.log('Database: Connecting via individual variables', {
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    db: process.env.DB_NAME,
+    ssl: process.env.DB_SSL
+  });
   pool = mysql.createPool({
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || '',
     database: process.env.DB_NAME || 'sekolah_absensi',
     port: parseInt(process.env.DB_PORT || '3306'),
-    ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
+    ssl: (process.env.DB_SSL === 'true' || !!process.env.DB_HOST && process.env.DB_HOST !== 'localhost') 
+      ? { rejectUnauthorized: false } 
+      : undefined,
     waitForConnections: true,
     connectionLimit: 10,
+    maxIdle: 10,
+    idleTimeout: 60000,
     queueLimit: 0,
     enableKeepAlive: true,
     keepAliveInitialDelay: 10000,

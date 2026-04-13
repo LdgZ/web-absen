@@ -40,17 +40,17 @@ export async function sendSMS(phone: string, message: string): Promise<SendResul
 
       console.log('Sending SMS via Fonnte:', { to, apiKeyLength: apiKey?.length });
 
-      // Fonnte API - correct endpoint and format
+      // Fonnte API - uses form-urlencoded, NOT JSON
+      const formData = new URLSearchParams();
+      formData.append('target', to);
+      formData.append('message', message);
+
       const res = await fetch('https://api.fonnte.com/send', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           Authorization: apiKey, // Fonnte uses plain token, not Bearer
         },
-        body: JSON.stringify({ 
-          target: to, 
-          message: message 
-        }),
+        body: formData,
       });
 
       console.log('Fonnte API response status:', res.status);

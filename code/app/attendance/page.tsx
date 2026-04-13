@@ -103,7 +103,7 @@ export default function AttendancePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           classId: selectedClass,
-          date: new Date().toISOString().split('T')[0],
+          date: new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' }),
           records,
         }),
       });

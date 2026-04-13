@@ -47,13 +47,21 @@ export async function GET() {
       LIMIT 5
     `, [today]);
 
-    const weeklyData = Array.isArray(weeklyResult) ? weeklyResult.map((row: any) => ({
-      day: row.day,
-      hadir: row.hadir,
-      sakit: row.sakit,
-      izin: row.izin,
-      alpha: row.alpha,
-    })) : [];
+    const weeklyData = Array.isArray(weeklyResult) ? weeklyResult.map((row: any) => {
+      // Ensure day is a formatted string for Recharts
+      const dateObj = new Date(row.day);
+      const formattedDay = !isNaN(dateObj.getTime()) 
+        ? dateObj.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })
+        : String(row.day);
+
+      return {
+        day: formattedDay,
+        hadir: Number(row.hadir || 0),
+        sakit: Number(row.sakit || 0),
+        izin: Number(row.izin || 0),
+        alpha: Number(row.alpha || 0),
+      };
+    }) : [];
 
     return NextResponse.json({
       totalStudents,

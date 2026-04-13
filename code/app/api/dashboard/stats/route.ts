@@ -72,8 +72,12 @@ export async function GET() {
       attendancePercentage,
       weeklyData,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Dashboard stats error:', error);
-    return NextResponse.json({ error: 'Error fetching stats' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Error fetching stats', 
+      details: error?.message || String(error),
+      code: error?.code,
+    }, { status: 500 });
   }
 }

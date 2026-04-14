@@ -6,7 +6,7 @@ export function middleware(request: NextRequest) {
 
   // 1. Define Public Routes (Pages & APIs)
   const isPublicPage = pathname === '/login' || pathname === '/register';
-  const isPublicApi = pathname === '/api/auth/login' || pathname === '/api/health';
+  const isPublicApi = pathname === '/api/auth/login' || pathname === '/api/health' || pathname === '/api/debug/schema';
   
   // 2. Allow public routes
   if (isPublicPage || isPublicApi) {

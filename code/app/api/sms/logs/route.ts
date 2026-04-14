@@ -4,10 +4,11 @@ import { query } from '@/lib/db';
 export async function GET(req: NextRequest) {
   try {
     const url = new URL(req.url);
-    const limit = parseInt(url.searchParams.get('limit') || '10', 10);
+    const limit = Math.min(Math.max(parseInt(url.searchParams.get('limit') || '10', 10), 1), 100);
 
     try {
-      const rows: any = await query('SELECT id, phone, message, status, provider, response, sent_at FROM sms_logs ORDER BY sent_at DESC LIMIT ?', [limit]);
+      // Use string interpolation for LIMIT since prepared statements may not support it on all MySQL versions
+      const rows: any = await query(`SELECT id, phone, message, status, provider, response, sent_at FROM sms_logs ORDER BY sent_at DESC LIMIT ${limit}`);
       return NextResponse.json({ logs: rows || [] });
     } catch (e) {
       // If DB table doesn't exist or query fails, return empty logs

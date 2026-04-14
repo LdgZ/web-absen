@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
     const { classId, date, records } = await request.json();
 
     let smsSent = 0;
-    const alphaStudentIds: string[] = [];
+    const notifyStudentIds: { id: string; status: string }[] = [];
 
     // Save attendance records
     for (const record of records) {
@@ -18,37 +18,54 @@ export async function POST(request: NextRequest) {
         [record.studentId, classId, date, dbStatus]
       );
 
-      // Track students with ALPHA status for SMS
-      if (dbStatus === 'alpha') {
-        alphaStudentIds.push(record.studentId);
+      // Track students with non-hadir status for SMS notification
+      if (dbStatus === 'alpha' || dbStatus === 'sakit' || dbStatus === 'izin') {
+        notifyStudentIds.push({ id: record.studentId, status: dbStatus });
       }
     }
 
-    // Send SMS for ALPHA students
-    if (alphaStudentIds.length > 0) {
+    // Send SMS for non-hadir students
+    if (notifyStudentIds.length > 0) {
       try {
-        const placeholders = alphaStudentIds.map(() => '?').join(',');
+        const ids = notifyStudentIds.map(s => s.id);
+        const placeholders = ids.map(() => '?').join(',');
         const students: any = await query(
           `SELECT id, phone_parent, name FROM students WHERE id IN (${placeholders})`,
-          alphaStudentIds
+          ids
         );
 
-        const today = new Date().toLocaleDateString('id-ID');
+        const today = new Date().toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta' });
 
         for (const student of (Array.isArray(students) ? students : [])) {
           const phone = student.phone_parent;
-          if (phone) {
-            const name = student.name || '';
-            const titleCaseName = name
-              .toLowerCase()
-              .split(' ')
-              .map((s: string) => s.charAt(0).toUpperCase() + s.substring(1))
-              .join(' ');
-            const message = `Halo Bapak/Ibu, menginfokan ananda ${titleCaseName} hari ini tidak masuk sekolah (Alpha). Mohon informasinya ya, terima kasih.`;
+          if (!phone) continue;
+
+          const name = student.name || '';
+          const titleCaseName = name
+            .toLowerCase()
+            .split(' ')
+            .map((s: string) => s.charAt(0).toUpperCase() + s.substring(1))
+            .join(' ');
+
+          // Find the status for this student
+          const entry = notifyStudentIds.find(n => String(n.id) === String(student.id));
+          const status = entry?.status || 'alpha';
+
+          // Generate appropriate message based on status
+          let message = '';
+          if (status === 'alpha') {
+            message = `Halo Bapak/Ibu, menginfokan ananda ${titleCaseName} hari ini (${today}) tidak masuk sekolah tanpa keterangan (Alpha). Mohon informasinya ya, terima kasih. - SDN Wringinagung 3`;
+          } else if (status === 'sakit') {
+            message = `Halo Bapak/Ibu, menginfokan ananda ${titleCaseName} hari ini (${today}) tercatat tidak masuk sekolah karena Sakit. Semoga lekas sembuh ya. Terima kasih. - SDN Wringinagung 3`;
+          } else if (status === 'izin') {
+            message = `Halo Bapak/Ibu, menginfokan ananda ${titleCaseName} hari ini (${today}) tercatat tidak masuk sekolah karena Izin. Terima kasih atas konfirmasinya. - SDN Wringinagung 3`;
+          }
+
+          if (message) {
             try {
               const result = await sendSMS(phone, message);
               if (result.success) smsSent++;
-              console.log(`SMS sent to ${phone}:`, result);
+              console.log(`SMS (${status}) sent to ${phone}:`, result);
             } catch (smsErr) {
               console.error(`Failed to send SMS to ${phone}:`, smsErr);
             }

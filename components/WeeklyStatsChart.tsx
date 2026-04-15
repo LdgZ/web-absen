@@ -4,7 +4,7 @@ import React from 'react';
 import { ResponsiveContainer, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Bar } from 'recharts';
 
 interface Props {
-  data: Array<{ day: string; hadir: number; sakit: number; alpha: number }>;
+  data: Array<{ day: string; hadir: number; sakit: number; izin: number; alpha: number }>;
 }
 
 export default function WeeklyStatsChart({ data }: Props) {
@@ -18,6 +18,7 @@ export default function WeeklyStatsChart({ data }: Props) {
         <Legend />
         <Bar dataKey="hadir" fill="#059669" name="Hadir" />
         <Bar dataKey="sakit" fill="#D97706" name="Sakit" />
+        <Bar dataKey="izin" fill="#2563EB" name="Izin" />
         <Bar dataKey="alpha" fill="#DC2626" name="Alpha" />
       </BarChart>
     </ResponsiveContainer>

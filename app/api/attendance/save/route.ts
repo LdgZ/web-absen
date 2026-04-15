@@ -54,11 +54,11 @@ export async function POST(request: NextRequest) {
           // Generate appropriate message based on status
           let message = '';
           if (status === 'alpha') {
-            message = `Halo Bapak/Ibu, menginfokan ananda ${titleCaseName} hari ini (${today}) tidak masuk sekolah tanpa keterangan (Alpha). Mohon informasinya ya, terima kasih. - SDN Wringinagung 3`;
+            message = `Bapak/Ibu, menginformasikan bahwa ananda ${titleCaseName} hari ini (${today}) tidak masuk sekolah tanpa keterangan (Alpha). Mohon informasinya bila ada kendala, terima kasih. - SDN Wringinagung 3`;
           } else if (status === 'sakit') {
-            message = `Halo Bapak/Ibu, menginfokan ananda ${titleCaseName} hari ini (${today}) tercatat tidak masuk sekolah karena Sakit. Semoga lekas sembuh ya. Terima kasih. - SDN Wringinagung 3`;
+            message = `Bapak/Ibu, menginformasikan bahwa ananda ${titleCaseName} hari ini (${today}) tercatat tidak masuk sekolah karena Sakit. Semoga lekas sembuh untuk ananda. Terima kasih. - SDN Wringinagung 3`;
           } else if (status === 'izin') {
-            message = `Halo Bapak/Ibu, menginfokan ananda ${titleCaseName} hari ini (${today}) tercatat tidak masuk sekolah karena Izin. Terima kasih atas konfirmasinya. - SDN Wringinagung 3`;
+            message = `Bapak/Ibu, menginformasikan bahwa ananda ${titleCaseName} hari ini (${today}) tercatat tidak masuk sekolah karena Izin. Terima kasih atas konfirmasinya. - SDN Wringinagung 3`;
           }
 
           if (message) {
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Presensi tersimpan',
+      message: 'Presensi berhasil disimpan',
       smsSent
     });
   } catch (error) {

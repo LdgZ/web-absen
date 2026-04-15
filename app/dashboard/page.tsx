@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import dynamic from 'next/dynamic';
 const WeeklyStatsChart = dynamic(() => import('@/components/WeeklyStatsChart'), { ssr: false });
-import { Users, CheckCircle, AlertCircle, XCircle, TrendingUp } from 'lucide-react';
+import { Users, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 interface Stats {
@@ -50,61 +50,71 @@ export default function DashboardPage() {
   };
 
   if (loading) {
-    return <div className="p-8 text-center">Loading...</div>;
+    return (
+      <div className="p-8 flex justify-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-600"></div>
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
+        <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
+        <p className="text-gray-500 mb-8 text-sm">
+          {new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+        </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+        {/* Ringkasan Kehadiran Hari Ini */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
           <Card className="p-6">
-            <p className="text-gray-600 text-sm">Total Siswa</p>
+            <p className="text-gray-500 text-sm">Total Siswa</p>
             <p className="text-3xl font-bold mt-2">{stats.totalStudents}</p>
           </Card>
           <Card className="p-6">
-            <p className="text-gray-600 text-sm">Hadir Hari Ini</p>
+            <p className="text-gray-500 text-sm">Hadir</p>
             <p className="text-3xl font-bold text-green-600 mt-2">{stats.presentToday}</p>
           </Card>
           <Card className="p-6">
-            <p className="text-gray-600 text-sm">Sakit Hari Ini</p>
+            <p className="text-gray-500 text-sm">Sakit</p>
             <p className="text-3xl font-bold text-orange-600 mt-2">{stats.sickToday}</p>
           </Card>
           <Card className="p-6">
-            <p className="text-gray-600 text-sm">Izin Hari Ini</p>
+            <p className="text-gray-500 text-sm">Izin</p>
             <p className="text-3xl font-bold text-blue-600 mt-2">{stats.izinToday}</p>
           </Card>
           <Card className="p-6">
-            <p className="text-gray-600 text-sm">Alpha Hari Ini</p>
+            <p className="text-gray-500 text-sm">Alpha</p>
             <p className="text-3xl font-bold text-red-600 mt-2">{stats.alphaToday}</p>
           </Card>
         </div>
 
+        {/* Navigasi Cepat */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <Button
             onClick={() => router.push('/attendance')}
             className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3"
           >
-            Presensi Hari Ini
+            Input Presensi Hari Ini
           </Button>
           <Button
             onClick={() => router.push('/students')}
             className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3"
           >
-            Kelola Siswa
+            Kelola Data Siswa
           </Button>
           <Button
             onClick={() => router.push('/reports')}
             className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3"
           >
-            Laporan
+            Lihat Laporan
           </Button>
         </div>
 
-        {/* Charts */}
+        {/* Grafik Mingguan */}
         <Card className="p-6 border-0 shadow-sm">
-          <h2 className="text-xl font-bold text-gray-900 mb-6">Statistik Minggu Ini</h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-1">Rekapitulasi 7 Hari Terakhir</h2>
+          <p className="text-sm text-gray-500 mb-6">Jumlah siswa per status kehadiran per hari.</p>
           <WeeklyStatsChart data={stats.weeklyData} />
         </Card>
       </div>

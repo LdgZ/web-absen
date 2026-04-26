@@ -9,13 +9,16 @@ export async function GET() {
     // Use Jakarta timezone for today's date
     const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
 
+    const errors: string[] = [];
+
     // Step 1: Get total students
     let totalStudents = 0;
     try {
       const totalResult: any = await query('SELECT COUNT(*) as count FROM students');
-      totalStudents = Array.isArray(totalResult) ? Number(totalResult[0]?.count || 0) : 0;
+      totalStudents = (Array.isArray(totalResult) && totalResult.length > 0) ? Number(totalResult[0]?.count || 0) : 0;
     } catch (e: any) {
-      console.error('Stats step 1 (students count) failed:', e.message);
+      errors.push(`Step 1 (Siswa): ${e.message}`);
+      console.error('Stats step 1 failed:', e.message);
     }
 
     // Step 2: Get today's attendance stats
@@ -33,14 +36,16 @@ export async function GET() {
       if (Array.isArray(attendanceResult)) {
         attendanceResult.forEach((row: any) => {
           const count = Number(row.count || 0);
-          if (row.status === 'hadir') presentToday = count;
-          if (row.status === 'sakit') sickToday = count;
-          if (row.status === 'izin') izinToday = count;
-          if (row.status === 'alpha') alphaToday = count;
+          const status = String(row.status || '').toLowerCase();
+          if (status === 'hadir') presentToday = count;
+          if (status === 'sakit') sickToday = count;
+          if (status === 'izin') izinToday = count;
+          if (status === 'alpha') alphaToday = count;
         });
       }
     } catch (e: any) {
-      console.error('Stats step 2 (attendance today) failed:', e.message);
+      errors.push(`Step 2 (Hadir): ${e.message}`);
+      console.error('Stats step 2 failed:', e.message);
     }
 
     const attendancePercentage = totalStudents > 0 ? Number(((presentToday / totalStudents) * 100).toFixed(1)) : 0;
@@ -58,16 +63,19 @@ export async function GET() {
         FROM attendance
         WHERE date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
         GROUP BY date
-        ORDER BY date ASC
-        LIMIT 7`
+        ORDER BY date ASC`
       );
 
       if (Array.isArray(weeklyResult)) {
         weeklyData = weeklyResult.map((row: any) => {
-          const dateObj = new Date(row.day + 'T00:00:00');
-          const formattedDay = !isNaN(dateObj.getTime())
-            ? dateObj.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })
-            : String(row.day);
+          const dateStr = String(row.day);
+          const parts = dateStr.split('-');
+          let formattedDay = dateStr;
+          
+          if (parts.length === 3) {
+            const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+            formattedDay = d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
+          }
 
           return {
             day: formattedDay,
@@ -79,7 +87,8 @@ export async function GET() {
         });
       }
     } catch (e: any) {
-      console.error('Stats step 3 (weekly data) failed:', e.message);
+      errors.push(`Step 3 (Grafik): ${e.message}`);
+      console.error('Stats step 3 failed:', e.message);
     }
 
     return NextResponse.json({
@@ -90,6 +99,8 @@ export async function GET() {
       alphaToday,
       attendancePercentage,
       weeklyData,
+      debug: errors.length > 0 ? errors : undefined,
+      dbStatus: process.env.DATABASE_URL ? 'Cloud' : 'Config Error'
     });
   } catch (error: any) {
     console.error('Dashboard stats error:', error);

@@ -1,12 +1,20 @@
 const mysql = require('mysql2/promise');
+const fs = require('fs');
+
+// Read env from .env.local
+const envContent = fs.readFileSync('.env.local', 'utf8');
+const getEnv = (key) => { const m = envContent.match(new RegExp(`${key}="?([^"\n]+)"?`)); return m ? m[1] : ''; };
+const host = getEnv('DB_HOST');
+const user = getEnv('DB_USER');
+const password = getEnv('DB_PASSWORD');
+const database = getEnv('DB_NAME');
+const port = parseInt(getEnv('DB_PORT') || '3306');
 
 async function refineClasses() {
   try {
     const connection = await mysql.createConnection({
-      host: 'localhost',
-      user: 'root',
-      password: '',
-      database: 'sekolah_absensi'
+      host, user, password, database, port,
+      ssl: { rejectUnauthorized: false }
     });
 
     console.log('Fetching classes...');

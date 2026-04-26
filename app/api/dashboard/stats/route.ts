@@ -43,7 +43,7 @@ export async function GET() {
       console.error('Stats step 2 (attendance today) failed:', e.message);
     }
 
-    const attendancePercentage = totalStudents > 0 ? ((presentToday / totalStudents) * 100).toFixed(1) : 0;
+    const attendancePercentage = totalStudents > 0 ? Number(((presentToday / totalStudents) * 100).toFixed(1)) : 0;
 
     // Step 3: Get weekly data (last 7 days)
     let weeklyData: any[] = [];

@@ -1,0 +1,415 @@
+SPESIFIKASI OPTIMAL WEB ABSENSI SEKOLAH
+User-Friendly Design + API Gratis
+
+I. DESIGN SYSTEM (SIMPLIFIED & MODERN)
+A. Color Palette
+--primary: #2563EB      /* Blue - trust & professional */
+--success: #059669      /* Green - hadir */
+--warning: #D97706      /* Orange - sakit/izin */
+--danger: #DC2626       /* Red - alpha */
+--neutral-50: #F9FAFB   /* Background */
+--neutral-900: #111827  /* Text */
+B. Typography
+Font: 'Inter' (Google Fonts) - universal
+Scale: 14px (mobile), 16px (desktop) base
+Weight: 400 (regular), 600 (semibold), 700 (bold)
+C. Spacing System (Tailwind Default)
+Gunakan: p-2, p-4, p-6, p-8 (8px increment)
+Border Radius: rounded-lg (0.5rem)
+Shadow: shadow-sm, shadow-md, shadow-lg
+
+II. TECH STACK (PROVEN & SIMPLE)
+Frontend
+Framework: ✅ Next.js 14 (React + SSR + API routes built-in) 
+oLebih baik dari React murni karena sudah termasuk routing & API
+Styling: ✅ Tailwind CSS + shadcn/ui components
+State: ✅ Zustand (lebih simple dari Redux)
+Forms: ✅ React Hook Form + Zod validation
+Charts: ✅ Recharts (lebih modern dari Chart.js)
+Calendar: ✅ React Big Calendar (lebih fleksibel)
+Icons: ✅ Lucide React
+Notifications: ✅ React Hot Toast
+Backend
+Framework: ✅ Next.js API Routes (tidak perlu Express terpisah)
+Database: ✅ PostgreSQL (Neon.tech free tier) 
+oLebih robust dari SQLite, gratis 512MB
+ORM: ✅ Prisma (type-safe, auto-migration)
+Auth: ✅ NextAuth.js (built-in OAuth support)
+File Upload: ✅ UploadThing (5GB gratis, lebih baik dari Cloudinary)
+APIs & Services (GRATIS)
+{
+  SMS: {
+    primary: "Fonnte.com", // Indonesia, 100 SMS/bulan gratis
+    fallback: "WA Gateway API" // via Fonnte
+  },
+  Email: {
+    service: "Resend.dev", // 3000 emails/bulan gratis
+    features: ["password_reset", "monthly_report"]
+  },
+  Storage: {
+    service: "UploadThing", // 5GB gratis
+    usage: ["foto_siswa", "surat_izin"]
+  },
+  Analytics: {
+    service: "Vercel Analytics", // gratis untuk personal
+    features: ["page_views", "performance"]
+  }
+}
+
+III. DATABASE SCHEMA (PRISMA)
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String   // hashed
+  name      String
+  role      Role     @default(TEACHER)
+  createdAt DateTime @default(now())
+  classes   Class[]
+}
+
+enum Role {
+  ADMIN
+  TEACHER
+  PARENT
+}
+
+model Class {
+  id          String      @id @default(cuid())
+  name        String      // "Kelas 3A"
+  teacherId   String
+  teacher     User        @relation(fields: [teacherId], references: [id])
+  students    Student[]
+  attendances Attendance[]
+}
+
+model Student {
+  id          String       @id @default(cuid())
+  nis         String       @unique
+  name        String
+  classId     String
+  class       Class        @relation(fields: [classId], references: [id])
+  parentName  String
+  parentPhone String       // format: 628123456789
+  photoUrl    String?
+  attendances Attendance[]
+  createdAt   DateTime     @default(now())
+}
+
+model Attendance {
+  id         String           @id @default(cuid())
+  date       DateTime
+  status     AttendanceStatus
+  note       String?
+  proofUrl   String?          // surat sakit/izin
+  studentId  String
+  student    Student          @relation(fields: [studentId], references: [id])
+  classId    String
+  class      Class            @relation(fields: [classId], references: [id])
+  createdAt  DateTime         @default(now())
+  
+  @@unique([studentId, date])
+}
+
+enum AttendanceStatus {
+  HADIR
+  SAKIT
+  IZIN
+  ALPHA
+}
+
+model SMSLog {
+  id        String   @id @default(cuid())
+  phone     String
+  message   String
+  status    String   // sent, failed
+  sentAt    DateTime @default(now())
+}
+
+IV. FITUR UTAMA (PRIORITAS)
+🎯 MVP Features (Week 1-2)
+1.
+✅ Auth System
+2.
+oLogin/Register with email
+oPassword reset via email
+oSession management (7 days)
+3.
+✅ Dashboard
+4.
+oStats cards: Kehadiran %, Hadir, Sakit, Izin, Alpha
+oQuick action buttons
+oRecent activity log
+5.
+✅ Absensi Harian
+6.
+oPilih kelas dropdown
+oPilih tanggal (date picker)
+oList siswa dengan toggle status
+oBulk actions (Tandai Semua Hadir)
+oAuto-save setiap perubahan
+7.
+✅ Manajemen Siswa
+8.
+oCRUD siswa (Create, Read, Update, Delete)
+oImport CSV (template provided)
+oExport data siswa
+oUpload foto siswa
+📊 Advanced Features (Week 3-4)
+1.
+✅ Laporan & Analytics
+2.
+oRekap harian (print/PDF)
+oRekap bulanan dengan chart
+oRekap per siswa
+oExport Excel
+3.
+✅ SMS Auto Notification
+4.
+oAuto kirim saat status ALPHA
+oTemplate message customizable
+oSMS quota monitoring
+oHistory log
+5.
+✅ Calendar View
+6.
+oMonthly calendar dengan color coding
+oClick date untuk absen
+oLegend status
+
+V. USER FLOW (SIMPLIFIED)
+Login Flow
+1. Landing → Login Form
+2. Authenticate → Redirect Dashboard
+3. First time? → Onboarding Tour (optional skip)
+Absensi Flow
+Dashboard → Absen Hari Ini
+  ↓
+Pilih Kelas (dropdown) → Tanggal (default: today)
+  ↓
+Tampil List Siswa
+  ↓
+Toggle Status per Siswa (Hadir/Sakit/Izin/Alpha)
+  ↓
+[Auto-save setiap 2 detik]
+  ↓
+Status ALPHA? → Trigger SMS otomatis
+  ↓
+Toast: "Absensi tersimpan! SMS terkirim ke 3 orang tua"
+SMS Notification Template
+const SMSTemplate = {
+  alpha: `Yth. Ortu {NAMA_SISWA},
+Anak Bapak/Ibu tidak hadir di sekolah hari ini ({TANGGAL}).
+Mohon konfirmasi.
+- {NAMA_SEKOLAH}`,
+  
+  warning: `Yth. Ortu {NAMA_SISWA},
+Anak Bapak/Ibu sudah alpha {JUMLAH}x bulan ini.
+Mohon perhatian.
+- {NAMA_SEKOLAH}`
+};
+
+VI. UI/UX IMPROVEMENTS
+❌ HAPUS (Terlalu Kompleks untuk MVP)
+❌ Social login (Google OAuth) - tambahkan nanti
+❌ Two-factor auth - overkill untuk sekolah
+❌ Drag & drop calendar - confusing
+❌ Video tutorial embed - buat docs terpisah
+❌ Lottie animations - slow loading
+❌ Multiple chart types - pilih 1-2 saja
+✅ TAMBAHKAN (Critical untuk UX)
+1.
+Skeleton Loading
+2.
+oTampilkan placeholder saat fetch data
+oHindari blank screen
+3.
+Optimistic Updates
+4.
+oUpdate UI dulu, sync ke server di background
+oRollback jika error
+5.
+Keyboard Shortcuts
+6.
+oCtrl+K: Quick search
+oCtrl+S: Save absensi
+oCtrl+/: Help menu
+7.
+Offline Support
+8.
+oCache data dengan Service Worker
+oSync saat online kembali
+oShow "offline mode" banner
+9.
+Smart Defaults
+10.
+oTanggal default: hari ini
+oStatus default: Hadir (karena mayoritas hadir)
+oKelas: ingat pilihan terakhir (localStorage)
+11.
+Error Handling
+12.
+oToast notification untuk error
+oRetry button untuk failed requests
+oJangan paksa refresh page
+
+VII. RESPONSIVE DESIGN (MOBILE-FIRST)
+Mobile (<768px)
+<Layout>
+  <MobileHeader /> {/* Logo + Menu burger */}
+  <MainContent />
+  <BottomNav> {/* Dashboard | Absen | Siswa | Laporan */}
+    <NavItem icon="home" label="Dashboard" />
+    <NavItem icon="check" label="Absen" />
+    <NavItem icon="users" label="Siswa" />
+    <NavItem icon="file" label="Laporan" />
+  </BottomNav>
+</Layout>
+Desktop (>768px)
+<Layout>
+  <Sidebar> {/* Expanded dengan icons + text */}
+    <Logo />
+    <NavLinks />
+    <UserProfile />
+  </Sidebar>
+  <MainContent>
+    <TopBar /> {/* Breadcrumb + Search + Notifications */}
+    <Content />
+  </MainContent>
+</Layout>
+
+VIII. PERFORMANCE OPTIMIZATION
+1. Image Optimization
+// Next.js Image component auto-optimize
+<Image 
+  src={student.photoUrl} 
+  width={100} 
+  height={100}
+  alt={student.name}
+  loading="lazy" // lazy load
+/>
+2. Data Fetching
+// Server-side rendering untuk halaman statis
+export async function getServerSideProps() {
+  const stats = await getAttendanceStats();
+  return { props: { stats } };
+}
+
+// Client-side untuk data real-time
+const { data } = useSWR('/api/students', fetcher, {
+  refreshInterval: 30000 // refresh every 30s
+});
+3. Code Splitting
+// Dynamic import untuk heavy components
+const ChartComponent = dynamic(() => import('@/components/Chart'), {
+  loading: () => <ChartSkeleton />,
+  ssr: false // disable SSR for charts
+});
+
+IX. DEPLOYMENT (FREE TIER)
+Hosting
+Frontend + Backend: Vercel (unlimited bandwidth, auto HTTPS)
+Database: Neon.tech PostgreSQL (512MB gratis)
+File Storage: UploadThing (5GB gratis)
+Domain: Custom domain dari Vercel atau beli .my.id (Rp 15rb/tahun)
+Environment Variables
+# Database
+DATABASE_URL="postgresql://..."
+
+# Auth
+NEXTAUTH_SECRET="generate-random-string"
+NEXTAUTH_URL="https://your-domain.com"
+
+# SMS (Fonnte)
+FONNTE_API_KEY="your-fonnte-key"
+
+# Email (Resend)
+RESEND_API_KEY="your-resend-key"
+
+# Upload
+UPLOADTHING_SECRET="your-uploadthing-secret"
+
+X. SECURITY CHECKLIST
+✅ Password hashing dengan bcrypt (12 rounds)
+✅ JWT token dengan expiry (7 days)
+✅ CSRF protection (built-in NextAuth)
+✅ Rate limiting untuk login (5 attempts/15min)
+✅ Input validation dengan Zod schema
+✅ SQL injection protection (Prisma ORM)
+✅ XSS protection (React auto-escape)
+✅ HTTPS only (Vercel auto-enable)
+
+XI. TIMELINE REALISTIS
+Week 1: Setup & Core
+Day 1-2: Project setup, database schema, auth
+Day 3-4: Dashboard UI, student CRUD
+Day 5-7: Attendance form, auto-save
+Week 2: Features
+Day 8-10: Calendar view, reports
+Day 11-12: SMS integration, testing
+Day 13-14: Bug fixes, polish
+Week 3: Polish & Deploy
+Day 15-16: Responsive testing
+Day 17-18: Performance optimization
+Day 19-20: Documentation
+Day 21: Deploy to production
+
+XII. TESTING STRATEGY
+Manual Testing
+1.Desktop: Chrome, Firefox, Safari
+2.Mobile: Android Chrome, iOS Safari
+3.Scenarios: 
+oLogin/logout
+oAbsen 30 siswa dalam 1 kelas
+oImport CSV 100 siswa
+oGenerate report 1 bulan
+oSMS notification trigger
+Automated Testing (Optional)
+// Vitest untuk unit test
+test('calculate attendance percentage', () => {
+  expect(calculatePercentage(28, 30)).toBe(93.33);
+});
+
+// Playwright untuk E2E test
+test('user can mark attendance', async ({ page }) => {
+  await page.goto('/dashboard');
+  await page.click('text=Absen Hari Ini');
+  await page.click('[data-student="1"] [data-status="hadir"]');
+  await expect(page.locator('.toast')).toContainText('Tersimpan');
+});
+
+XIII. POST-LAUNCH IMPROVEMENTS
+Phase 2 (Bulan 2-3)
+Parent portal (orang tua bisa cek sendiri)
+Push notifications (Web Push API)
+Multi-sekolah support
+Backup & restore data
+Advanced analytics (prediksi kehadiran)
+Phase 3 (Bulan 4-6)
+Mobile app (React Native)
+QR code attendance
+Integration dengan SIAKAD
+Payment gateway untuk billing
+White-label solution
+
+KESIMPULAN & REKOMENDASI
+✅ Perubahan Utama dari Spec Awal:
+1.Next.js instead of React + Express → Lebih simple, 1 codebase
+2.PostgreSQL instead of SQLite → Production-ready dari awal
+3.Fonnte instead of Twilio → Lebih cocok untuk Indonesia
+4.Resend instead of Brevo → Developer-friendly API
+5.UploadThing instead of Cloudinary → Better DX, generous free tier
+6.Remove: OAuth, 2FA, Lottie → Keep it simple for MVP
+7.Add: Offline support, keyboard shortcuts, optimistic updates
+💡 Tips Implementasi:
+Start small: Buat MVP dulu (Week 1-2), jangan langsung semua fitur
+User feedback: Deploy early, minta feedback dari 1 guru dulu
+Iterate fast: Update setiap 2-3 hari based on feedback
+Document: Buat video tutorial 5 menit untuk onboarding
+📊 Success Metrics:
+✅ Guru bisa absen 1 kelas (30 siswa) dalam < 2 menit
+✅ Load time dashboard < 2 detik
+✅ SMS delivery rate > 95%
+✅ Zero data loss (auto-save works)
+✅ Mobile usable (no zoom required)
+
+Next Step: Mau saya buatkan starter code atau mockup UI-nya? 🚀

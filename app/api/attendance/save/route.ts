@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
-import { sendSMS } from '@/lib/sms';
+import { sendWhatsApp } from '@/lib/sms';
 
 export async function POST(request: NextRequest) {
   try {
     const { classId, date, records } = await request.json();
 
-    let smsSent = 0;
+    let whatsappSent = 0;
     const notifyStudentIds: { id: string; status: string }[] = [];
 
     // Save attendance records
@@ -18,13 +18,13 @@ export async function POST(request: NextRequest) {
         [record.studentId, classId, date, dbStatus]
       );
 
-      // Track students with non-hadir status for SMS notification
+      // Track students with non-hadir status for WhatsApp notification
       if (dbStatus === 'alpha' || dbStatus === 'sakit' || dbStatus === 'izin') {
         notifyStudentIds.push({ id: record.studentId, status: dbStatus });
       }
     }
 
-    // Send SMS for non-hadir students
+    // Send WhatsApp for non-hadir students
     if (notifyStudentIds.length > 0) {
       try {
         const ids = notifyStudentIds.map(s => s.id);
@@ -63,16 +63,16 @@ export async function POST(request: NextRequest) {
 
           if (message) {
             try {
-              const result = await sendSMS(phone, message);
-              if (result.success) smsSent++;
-              console.log(`SMS (${status}) sent to ${phone}:`, result);
+              const result = await sendWhatsApp(phone, message);
+              if (result.success) whatsappSent++;
+              console.log(`WhatsApp (${status}) sent to ${phone}:`, result);
             } catch (smsErr) {
-              console.error(`Failed to send SMS to ${phone}:`, smsErr);
+              console.error(`Failed to send WhatsApp to ${phone}:`, smsErr);
             }
           }
         }
       } catch (smsError) {
-        console.error('Error processing SMS sending:', smsError);
+        console.error('Error processing WhatsApp sending:', smsError);
         // Don't fail the whole request if SMS fails
       }
     }
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Presensi berhasil disimpan',
-      smsSent
+      whatsappSent
     });
   } catch (error) {
     console.error('Error saving attendance:', error);

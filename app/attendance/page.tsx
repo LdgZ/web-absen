@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CheckCircle, AlertCircle, XCircle, Save, RotateCcw } from 'lucide-react';
+import { CheckCircle, AlertCircle, XCircle, Save, RotateCcw, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface Student {
@@ -28,6 +28,8 @@ export default function AttendancePage() {
   const [saving, setSaving] = useState(false);
   const [resetting, setResetting] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [resettingAll, setResettingAll] = useState(false);
+  const [showResetAllConfirm, setShowResetAllConfirm] = useState(false);
 
   useEffect(() => {
     fetchClasses();
@@ -111,8 +113,8 @@ export default function AttendancePage() {
       if (!response.ok) throw new Error('Gagal menyimpan');
 
       const result = await response.json();
-      const smsMsg = result.smsSent > 0 ? ` (${result.smsSent} notifikasi SMS terkirim)` : '';
-      toast.success(`Data presensi berhasil disimpan.${smsMsg}`);
+      const whatsappMsg = result.whatsappSent > 0 ? ` (${result.whatsappSent} notifikasi WhatsApp terkirim)` : '';
+      toast.success(`Data presensi berhasil disimpan.${whatsappMsg}`);
       fetchStudents();
     } catch (error) {
       toast.error('Presensi gagal disimpan. Coba beberapa saat lagi.');
@@ -140,6 +142,48 @@ export default function AttendancePage() {
       toast.error('Reset presensi gagal. Coba lagi nanti.');
     } finally {
       setResetting(false);
+    }
+  };
+
+  const handleResetAll = async () => {
+    setResettingAll(true);
+    try {
+      const response = await fetch('/api/attendance/reset-all', {
+        method: 'POST',
+      });
+
+      if (!response.ok) throw new Error('Gagal mereset semua');
+
+      toast.success('Seluruh data presensi hari ini berhasil direset.');
+      setShowResetAllConfirm(false);
+      if (selectedClass) {
+        fetchStudents();
+      }
+    } catch (error) {
+      toast.error('Reset semua presensi gagal. Coba lagi nanti.');
+    } finally {
+      setResettingAll(false);
+    }
+  };
+
+  const handleDeleteRecord = async (studentId: string) => {
+    try {
+      const response = await fetch('/api/attendance/delete-record', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ studentId }),
+      });
+
+      if (!response.ok) throw new Error('Gagal menghapus');
+
+      toast.success('Data presensi siswa berhasil dihapus.');
+      
+      // Update local state to remove the status
+      const newAttendance = new Map(attendance);
+      newAttendance.delete(studentId);
+      setAttendance(newAttendance);
+    } catch (error) {
+      toast.error('Gagal menghapus presensi siswa.');
     }
   };
 
@@ -189,6 +233,40 @@ export default function AttendancePage() {
           <p className="text-gray-600 mt-2">
             {new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
           </p>
+        </div>
+
+        {/* Reset Semua Kelas - Global Action */}
+        <div className="mb-6 flex justify-end">
+          {showResetAllConfirm ? (
+            <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-lg px-4 py-2 w-full md:w-auto">
+              <p className="text-sm text-red-700 font-medium">
+                Yakin hapus SEMUA presensi sekolah hari ini?
+              </p>
+              <Button
+                onClick={handleResetAll}
+                disabled={resettingAll}
+                className="bg-red-600 hover:bg-red-700 text-white text-sm h-8 px-3"
+              >
+                {resettingAll ? 'Menghapus...' : 'Ya, Hapus Semua'}
+              </Button>
+              <Button
+                onClick={() => setShowResetAllConfirm(false)}
+                variant="outline"
+                className="text-sm h-8 px-3"
+              >
+                Batal
+              </Button>
+            </div>
+          ) : (
+            <Button
+              onClick={() => setShowResetAllConfirm(true)}
+              variant="outline"
+              className="text-red-600 border-red-300 hover:bg-red-50 text-sm flex items-center gap-2"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Reset Semua Kelas
+            </Button>
+          )}
         </div>
 
         {/* Pilih Kelas */}
@@ -321,6 +399,16 @@ export default function AttendancePage() {
                           Alpha
                         </button>
                       </div>
+                      
+                      {attendance.has(student.id) && (
+                        <button
+                          onClick={() => handleDeleteRecord(student.id)}
+                          className="p-2 text-gray-400 hover:text-red-600 transition"
+                          title="Hapus presensi siswa ini"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 </Card>

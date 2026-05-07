@@ -7,8 +7,8 @@ type SendResult = {
   error?: string;
 };
 
-// Provider-agnostic SMS sender with Fonnte fallback.
-export async function sendSMS(phone: string, message: string): Promise<SendResult> {
+// Provider-agnostic WhatsApp sender with Fonnte fallback.
+export async function sendWhatsApp(phone: string, message: string): Promise<SendResult> {
   const apiKey = process.env.FONNTE_API_KEY;
 
   // Normalize phone: convert 0 to 62 for international format
@@ -21,10 +21,10 @@ export async function sendSMS(phone: string, message: string): Promise<SendResul
 
   if (apiKey) {
     try {
-      // ensure sms_logs table exists (best-effort)
+      // ensure whatsapp_logs table exists (best-effort)
       try {
         await query(`
-          CREATE TABLE IF NOT EXISTS sms_logs (
+          CREATE TABLE IF NOT EXISTS whatsapp_logs (
             id INT AUTO_INCREMENT PRIMARY KEY,
             phone VARCHAR(50),
             message TEXT,
@@ -38,7 +38,7 @@ export async function sendSMS(phone: string, message: string): Promise<SendResul
         // ignore if create fails
       }
 
-      console.log('Sending SMS via Fonnte:', { to, apiKeyLength: apiKey?.length });
+      console.log('Sending WhatsApp via Fonnte:', { to, apiKeyLength: apiKey?.length });
 
       // Fonnte API - uses form-urlencoded, NOT JSON
       const formData = new URLSearchParams();
@@ -78,17 +78,17 @@ export async function sendSMS(phone: string, message: string): Promise<SendResul
       // Attempt to log into DB (best effort)
       try {
         await query(
-          'INSERT INTO sms_logs (phone, message, status, provider, response, sent_at) VALUES (?, ?, ?, ?, ?, NOW())',
+          'INSERT INTO whatsapp_logs (phone, message, status, provider, response, sent_at) VALUES (?, ?, ?, ?, ?, NOW())',
           [to, message, isSuccess ? 'sent' : 'failed', 'fonnte', JSON.stringify(data)]
         );
       } catch (e) {
         // ignore logging errors
-        console.warn('sms log insert failed', e);
+        console.warn('whatsapp log insert failed', e);
       }
 
       return { success: isSuccess, provider: 'fonnte', response: data };
     } catch (error: any) {
-      console.error('SMS send error:', error);
+      console.error('WhatsApp send error:', error);
       return { success: false, error: error?.message || String(error) };
     }
   }
@@ -97,7 +97,7 @@ export async function sendSMS(phone: string, message: string): Promise<SendResul
   try {
     try {
       await query(`
-        CREATE TABLE IF NOT EXISTS sms_logs (
+        CREATE TABLE IF NOT EXISTS whatsapp_logs (
           id INT AUTO_INCREMENT PRIMARY KEY,
           phone VARCHAR(50),
           message TEXT,
@@ -109,12 +109,12 @@ export async function sendSMS(phone: string, message: string): Promise<SendResul
       `);
     } catch (e) {}
     await query(
-      'INSERT INTO sms_logs (phone, message, status, provider, response, sent_at) VALUES (?, ?, ?, ?, ?, NOW())',
+      'INSERT INTO whatsapp_logs (phone, message, status, provider, response, sent_at) VALUES (?, ?, ?, ?, ?, NOW())',
       [to, message, 'failed', 'none', JSON.stringify({ reason: 'no-provider' })]
     );
   } catch (e) {
     // ignore
   }
 
-  return { success: false, error: 'No SMS provider configured (set FONNTE_API_KEY)' };
+  return { success: false, error: 'No WhatsApp provider configured (set FONNTE_API_KEY)' };
 }

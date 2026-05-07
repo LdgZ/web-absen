@@ -1,6 +1,6 @@
 'use client';
 
-import { SMSNotificationPanel } from '@/components/sms-notification-panel';
+import { WhatsAppNotificationPanel } from '@/components/sms-notification-panel';
 import { Card } from '@/components/ui/card';
 
 export default function SettingsPage() {
@@ -13,8 +13,8 @@ export default function SettingsPage() {
           <p className="text-gray-600 mt-2">Kelola konfigurasi sistem presensi</p>
         </div>
 
-        {/* SMS Settings */}
-        <SMSNotificationPanel />
+        {/* WhatsApp Settings */}
+        <WhatsAppNotificationPanel />
       </div>
     </div>
   );

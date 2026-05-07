@@ -7,7 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { MessageSquare, Send, Settings } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-interface SMSLog {
+interface WhatsAppLog {
   id: string;
   phone: string;
   message: string;
@@ -15,8 +15,8 @@ interface SMSLog {
   sent_at: string;
 }
 
-export function SMSNotificationPanel() {
-  const [logs, setLogs] = useState<SMSLog[]>([]);
+export function WhatsAppNotificationPanel() {
+  const [logs, setLogs] = useState<WhatsAppLog[]>([]);
   const [settings, setSettings] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
@@ -31,7 +31,7 @@ export function SMSNotificationPanel() {
       const data = await response.json();
       setLogs(data.logs);
     } catch (error) {
-      console.error('Error fetching SMS logs:', error);
+      console.error('Error fetching WhatsApp logs:', error);
     }
   };
 
@@ -41,11 +41,11 @@ export function SMSNotificationPanel() {
       const data = await response.json();
       setSettings(data);
     } catch (error) {
-      console.error('Error fetching SMS settings:', error);
+      console.error('Error fetching WhatsApp settings:', error);
     }
   };
 
-  const handleToggleSMS = async (enabled: boolean) => {
+  const handleToggleWhatsApp = async (enabled: boolean) => {
     try {
       const response = await fetch('/api/sms/settings', {
         method: 'PUT',
@@ -56,7 +56,7 @@ export function SMSNotificationPanel() {
       if (!response.ok) throw new Error('Failed to update');
       const data = await response.json();
       setSettings(data.settings);
-      toast.success('Pengaturan SMS diperbarui');
+      toast.success('Pengaturan WhatsApp diperbarui');
     } catch (error) {
       toast.error('Gagal memperbarui pengaturan');
     }
@@ -69,7 +69,7 @@ export function SMSNotificationPanel() {
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
             <Settings className="w-5 h-5" />
-            Pengaturan SMS
+            Pengaturan WhatsApp
           </h3>
         </div>
 
@@ -77,12 +77,12 @@ export function SMSNotificationPanel() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium text-gray-900">SMS Notifications</p>
-                <p className="text-sm text-gray-600">Aktifkan notifikasi SMS otomatis</p>
+                <p className="font-medium text-gray-900">WhatsApp Notifications</p>
+                <p className="text-sm text-gray-600">Aktifkan notifikasi WhatsApp otomatis</p>
               </div>
               <Switch
                 checked={settings.enabled}
-                onCheckedChange={(checked) => handleToggleSMS(checked)}
+                onCheckedChange={(checked) => handleToggleWhatsApp(checked)}
               />
             </div>
 
@@ -109,7 +109,7 @@ export function SMSNotificationPanel() {
       <Card className="p-6 border-0 shadow-sm">
         <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2 mb-4">
           <MessageSquare className="w-5 h-5" />
-          Log SMS Terakhir
+          Log WhatsApp Terakhir
         </h3>
 
         {logs.length > 0 ? (
@@ -143,7 +143,7 @@ export function SMSNotificationPanel() {
             ))}
           </div>
         ) : (
-          <p className="text-center text-gray-600 py-8">Belum ada SMS yang terkirim</p>
+          <p className="text-center text-gray-600 py-8">Belum ada pesan WhatsApp yang terkirim</p>
         )}
       </Card>
     </div>

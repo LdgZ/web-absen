@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
 
     try {
       // Use string interpolation for LIMIT since prepared statements may not support it on all MySQL versions
-      const rows: any = await query(`SELECT id, phone, message, status, provider, response, sent_at FROM sms_logs ORDER BY sent_at DESC LIMIT ${limit}`);
+      const rows: any = await query(`SELECT id, phone, message, status, provider, response, sent_at FROM whatsapp_logs ORDER BY sent_at DESC LIMIT ${limit}`);
       return NextResponse.json({ logs: rows || [] });
     } catch (e) {
       // If DB table doesn't exist or query fails, return empty logs
